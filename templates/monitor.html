@@ -7,35 +7,74 @@
 
 {% block main %}
 <div class="row" id="monitor-content">
-  <div class="col-sm-12 col-md-4 col-lg-3">
-    <div class="card mb-4 rounded-5 shadow">
-      <div class="d-flex rounded-5 shadow flex-grow-1 position-relative">
-        <img src="./static/images/farm_img.jpg" class="card-img-top rounded-5">
-        <div class="card-img-overlay">
-          <h5 class="card-title text-white position-absolute z-1 bottom-0 pb-2">Patimbao</h5> 
-          <div class="img-overlay-gradient rounded-5"></div>
-        </div>
-      </div>
-      <div class="card-body flex-shrink-1 p-3">
-        <p class="card-text">Device status: Okay!</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-12 col-md-4 col-lg-3">
-    <div class="card mb-4 rounded-5 shadow">
-      <div class="d-flex rounded-5 shadow flex-grow-1 position-relative">
-        <img src="./static/images/farm_img.jpg" class="card-img-top rounded-5">
-        <div class="card-img-overlay">
-          <h5 class="card-title text-white position-absolute z-1 bottom-0 pb-2">Patimbao</h5> 
-          <div class="img-overlay-gradient rounded-5"></div>
-        </div>
-      </div>
-      <div class="card-body flex-shrink-1 p-3">
-        <p class="card-text">Device status: Okay!</p>
-      </div>
-    </div>
-  </div>
+  <div class="col-12 col-md-4 col-lg-3">
+    <a href="#" class="text-decoration-none">
+      <div class="card mb-4 rounded-5 shadow">
+        <div class="d-flex rounded-5 shadow flex-grow-1 position-relative">
+          <img src="./static/images/farm_img.jpg" class="card-img-top rounded-5">
+          <div class="card-img-overlay">
+            <h5 class="card-title text-white position-absolute z-1 bottom-0 pb-2">Patimbao</h5> 
+            <div class="img-overlay-gradient rounded-5"></div>
+          </div>
 
+          <div class="dropdown m-3" style="position: absolute; right: 0;">
+            <a class="dropdown-toggle text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-ellipsis-vertical" style="color: #ffffff; font-size: 2rem;"></i>
+            </a>
+          
+            <ul class="dropdown-menu rounded-1">
+              <li><a class="dropdown-item" href="#">Rename</a></li>
+              <li><a class="dropdown-item" href="#">Change Picture</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Delete</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-body flex-shrink-1 p-3">
+          <p class="card-text">Device status: Okay!</p>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-4 col-lg-3">
+    <a href="#" class="text-decoration-none">
+      <div class="card mb-4 rounded-5 shadow">
+        <div class="d-flex rounded-5 shadow flex-grow-1 position-relative">
+          <img src="./static/images/farm_img.jpg" class="card-img-top rounded-5">
+          <div class="card-img-overlay">
+            <h5 class="card-title text-white position-absolute z-1 bottom-0 pb-2">Patimbao</h5> 
+            <div class="img-overlay-gradient rounded-5"></div>
+          </div>
+
+          <div class="dropdown m-3" style="position: absolute; right: 0;">
+            <a class="dropdown-toggle text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-ellipsis-vertical" style="color: #ffffff; font-size: 2rem;"></i>
+            </a>
+          
+            <ul class="dropdown-menu rounded-1">
+              <li><a class="dropdown-item" href="#">Rename</a></li>
+              <li><a class="dropdown-item" href="#">Change Picture</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Delete</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card-body flex-shrink-1 p-3">
+          <p class="card-text">Device status: Okay!</p>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-4 col-lg-3">
+    <div class="d-grid" style="min-height: 300px;">
+      <button type="button" class="btn btn-light align-items-center rounded-5 shadow">
+        <i class="fa-solid fa-plus" style="font-size: 5rem;"></i>
+        <h5>Create New</h5>
+      </button>
+    </div>
+  </div>
 
 </div>
 {% endblock%}
