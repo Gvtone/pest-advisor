@@ -1,0 +1,167 @@
+{% extends "layout.html" %}
+
+{% set active_page = "index" %}
+
+{% block title%} Dashboard {% endblock %}
+{% block header %} DASHBOARD {% endblock %}
+
+{% block main %}
+<div class="d-flex flex-column flex-grow-1" id="dashboard-content">
+  <!-- Farm Overview -->
+  <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <div class="flex-column">
+          <h5 class="card-title">Farm Overview</h5>
+          <h6 class="card-subtitle mb-2 text-body-secondary">Farm Tracking Information</h6>
+        </div>
+        <div>
+          <i class="fa-solid fa-wheat-awn" style="font-size: 35px"></i>
+        </div>
+      </div>
+      
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Farm Name</th>
+            <th class="d-none d-md-table-cell" scope="col">Location</th>
+            <th class="d-none d-md-table-cell" scope="col">Authorization</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>San Juan</td>
+            <td class="d-none d-md-table-cell">San Juan, Santa Cruz, Laguna</td>
+            <td class="d-none d-md-table-cell">Admin</td>
+            <td><span class="badge text-bg-success">OK</span></td>
+          </tr>
+          <tr>
+            <td>Palasan</td>
+            <td class="d-none d-md-table-cell">Palasan, Santa Cruz, Laguna</td>
+            <td class="d-none d-md-table-cell">Owner</td>
+            <td><span class="badge text-bg-success">OK</span></td>
+          </tr>
+          <tr>
+            <td>Gatid</td>
+            <td class="d-none d-md-table-cell">Gatid, Santa Cruz, Laguna</td>
+            <td class="d-none d-md-table-cell">Manager</td>
+            <td><span class="badge text-bg-danger">Attention</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Temperature & Insect Population -->
+  <div class="d-flex flex-wrap mb-4 card-collapse">
+    <div class="card rounded-5 p-3 shadow" style="flex: 1.5;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Temperature</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">Card subtitle</h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-temperature-three-quarters" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex-align-stretch card-divider d-none d-md-block"></div>
+    <div class="card-divider d-lg-none"></div>
+
+    <div class="card rounded-5 p-3 shadow" style="flex: 2.5;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Insect Population</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">Number of Insects Captured per Month</h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-spider" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weather, Next Capture, & Replace Trap -->
+  <div class="d-flex flex-wrap mb-4 card-collapse ">
+    <div class="card rounded-5 p-3 shadow" style="flex: 1;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Weather</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">Card subtitle</h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-cloud" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex-align-stretch card-divider d-none d-md-block"></div>
+    <div class="card-divider d-lg-none" style="font-size: 35px"></div>
+
+    <div class="card rounded-5 p-3 shadow" style="flex: 1;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Next Capture</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">Schedule of Sampling</h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-clock" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex-align-stretch card-divider d-none d-md-block"></div>
+    <div class="card-divider d-lg-none"></div>
+
+    <div class="card rounded-5 p-3 shadow" style="flex: 1;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Replace Trap</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">Date of Trap Replacement</h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-mosquito-net card-icon" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock%}
