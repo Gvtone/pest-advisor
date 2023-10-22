@@ -14,13 +14,8 @@
     min-height: 1.5rem;
 }
 
-#header-content {
-    background: #f0f2f5;
-}
-
 #top-nav-content {  
     background-color: #f0f2f5;
-    font-family: Inter;
 }
 
 .sidebar, .offcanvas{
@@ -29,7 +24,6 @@
     max-width: 250px;
     max-height: 100vh;
     transition: all 0.3s;
-    font-family: Inter;
     font-weight: 500;
 }
 
@@ -60,16 +54,13 @@
     max-height: 30px;
 }
 
-#main-content {
+body {
     background: #f0f2f5;
+    font-family: Inter;
 }
 
 #dashboard-content .card-collapse {
     flex-direction: row;
-}
-
-.card {
-    font-family: Inter;
 }
 
 #dashboard-content .card, #monitor-content .card {
