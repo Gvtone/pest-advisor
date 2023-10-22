@@ -31,6 +31,11 @@ def index():
     # Returning user's portfolio
     return render_template("index.html")
 
+@app.route("/login")
+def login():
+    # Returning user's portfolio
+    return render_template("login.html")
+
 @app.route("/monitor")
 def monitor():
     # Returning user's portfolio
