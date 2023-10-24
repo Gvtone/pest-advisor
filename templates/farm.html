@@ -1,0 +1,115 @@
+{% extends "layout.html" %} {% set active_page = "monitor" %}
+
+<!-- TODO: Change with the farm's name in the future -->
+{% block title%} Farm Name {% endblock %}
+{% block header %} MONITOR {% endblock %}
+
+{% block main %}
+<div class="position-relative">
+  <!-- TODO: Make cover photo dynamic -->
+  <img src="/static/images/farm_img.jpg" class="img-fluid" style="max-height: 300px; width: 100%; object-fit: cover;"/>
+  <div class="img-overlay-gradient"></div>
+  <!-- TODO: Make title dynamic -->
+  <h2 class="text-white position-absolute bottom-0 start-0 p-3 m-0 overlay-text">PATIMBAO</h2>
+</div>
+
+<div class="d-flex flex-column flex-grow-1 px-4 pt-4" id="dashboard-content">
+  <!-- Temperature & Insect Population -->
+  <div class="d-flex flex-wrap mb-4 card-collapse">
+    <div class="card rounded-5 p-3 shadow" style="flex: 2.5">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Device Report</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">
+              Quick Report Summary
+            </h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-rectangle-list" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex-align-stretch card-divider d-none d-md-block"></div>
+    <div class="card-divider d-lg-none"></div>
+
+    <div class="card rounded-5 p-3 shadow" style="flex: 1.5">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Device Connected</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">
+              Number of Devices
+            </h6>
+          </div>
+          <div>
+            <i
+              class="fa-solid fa-camera"
+              style="font-size: 35px"
+            ></i>
+          </div>
+        </div>
+
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- Farm Overview -->
+  <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <div class="flex-column">
+          <h5 class="card-title">List of Devices</h5>
+          <h6 class="card-subtitle mb-2 text-body-secondary">
+            Double Click Device to View Full Details
+          </h6>
+        </div>
+        <div>
+          <i class="fa-solid fa-solar-panel" style="font-size: 35px"></i>
+        </div>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Farm Name</th>
+            <th class="d-none d-md-table-cell" scope="col">Location</th>
+            <th class="d-none d-md-table-cell" scope="col">Authorization</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>San Juan</td>
+            <td class="d-none d-md-table-cell">San Juan, Santa Cruz, Laguna</td>
+            <td class="d-none d-md-table-cell">Admin</td>
+            <td><span class="badge text-bg-success">OK</span></td>
+          </tr>
+          <tr>
+            <td>Palasan</td>
+            <td class="d-none d-md-table-cell">Palasan, Santa Cruz, Laguna</td>
+            <td class="d-none d-md-table-cell">Owner</td>
+            <td><span class="badge text-bg-success">OK</span></td>
+          </tr>
+          <tr>
+            <td>Gatid</td>
+            <td class="d-none d-md-table-cell">Gatid, Santa Cruz, Laguna</td>
+            <td class="d-none d-md-table-cell">Manager</td>
+            <td><span class="badge text-bg-danger">Attention</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock%}
