@@ -84,10 +84,10 @@ body {
     flex: 0;
 }
 
-#monitor-content .card .img-overlay-gradient {
+.img-overlay-gradient {
     height: 100%;
     width: 100%;
-    background: linear-gradient(0deg, rgba(7,6,25,0.7) 0%, rgba(33,33,56,0.5) 30%, rgba(255,255,255,0) 40%);
+    background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(133,133,133,0.499124649859944) 50%, rgba(255,255,255,0) 100%);
     position: absolute;
     top: 0;
     left: 0;
@@ -96,6 +96,11 @@ body {
 .card-img-top {
     min-width: 100%;
     min-height: 100%;
+}
+
+.overlay-text {
+    font-weight: 700; 
+    font-size: calc(3rem + .9vw);
 }
 
 .dropdown-toggle::after {

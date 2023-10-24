@@ -36,7 +36,20 @@ def login():
     # Returning user's portfolio
     return render_template("login.html")
 
+@app.route("/signup")
+def signup():
+    # Returning user's portfolio
+    return render_template("signup.html")
+
 @app.route("/monitor")
 def monitor():
     # Returning user's portfolio
     return render_template("monitor.html")
+
+# TODO
+# Change to dynamic link in future
+# /monitor/[user]/[farm name]
+@app.route("/monitor/farm")
+def farm():
+    # Returning user's portfolio
+    return render_template("farm.html")
