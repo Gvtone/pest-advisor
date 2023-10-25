@@ -63,7 +63,9 @@ body {
     flex-direction: row;
 }
 
-#dashboard-content .card, #monitor-content .card {
+#dashboard-content .card,
+#monitor-content .card,
+#organism-content .card {
     min-height: 300px;
 }
 
@@ -80,7 +82,8 @@ body {
     font-weight: 400;
 }
 
-#monitor-content .card .card-body {
+#monitor-content .card .card-body,
+#organism-content .card .card-body {
     flex: 0;
 }
 
@@ -105,6 +108,18 @@ body {
 
 .dropdown-toggle::after {
     content: none;
+}
+
+.harmful-subtitle {
+    background: #990000;
+    color: white;
+    font-weight: 500;
+}
+
+.beneficial-subtitle {
+    background: #38761d;
+    color: white;
+    font-weight: 500;
 }
 
 @media(max-width: 820px) {
