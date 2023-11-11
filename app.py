@@ -6,6 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
+import json
 
 # Global Variables
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -17,6 +18,8 @@ app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # Setup folder for API Endpoint
+# app.config['UPLOAD_FOLDER'] = "pest-advisor/captured"
+# FOR TESTING
 app.config['UPLOAD_FOLDER'] = "./captured"
 
 # Configure session to use filesystem (instead of signed cookies)
@@ -66,6 +69,9 @@ class farm(db.Model):
     devices = db.relationship('device', backref='farm',
                               lazy=True, cascade='all, delete-orphan')
 
+    images = db.relationship('capture', backref='farm',
+                             lazy=True, cascade='all, delete-orphan')
+
 
 class device(db.Model):
     ID = db.Column("ID", db.Integer, nullable=False,
@@ -76,6 +82,7 @@ class device(db.Model):
                             nullable=False, unique=True)
     Latitude = db.Column("Latitude", db.Numeric)
     Longitude = db.Column("Longitude", db.Numeric)
+    URL = db.Column("URL", db.String(255), nullable=False, unique=True)
 
     captures = db.relationship(
         'capture', backref='device', lazy=True, cascade='all, delete-orphan')
@@ -86,8 +93,14 @@ class capture(db.Model):
                    primary_key=True, autoincrement=True)
     Device_ID = db.Column("Device_ID", db.Integer, db.ForeignKey(
         'device.ID', ondelete='CASCADE'), nullable=False, unique=True)
+    Farm_ID = db.Column("Farm_ID", db.Integer, db.ForeignKey(
+        'farm.ID', ondelete='CASCADE'), nullable=False, unique=True)
+    Image_Name = db.Column("Image_Name", db.String(20), nullable=False)
     Image = db.Column("Image", db.LargeBinary, nullable=False)
+    Date = db.Column("Date", db.Date, nullable=False)
+    Time = db.Column("Time", db.Time, nullable=False)
     Prediction = db.Column("Prediction", db.LargeBinary, nullable=False)
+
 
 def login_required(f):
     """
@@ -101,6 +114,7 @@ def login_required(f):
             return redirect("/login")
         return f(*args, **kwargs)
     return decorated_function
+
 
 @app.route("/")
 @login_required
@@ -119,6 +133,12 @@ def login():
     if session.get("user_id") != None:
         print("index")
         return redirect("/")
+
+
+@app.route("/logout", methods=['GET'])
+def logout():
+    session.clear()
+    return redirect("/login")
 
 
 @app.route("/check_signup", methods=['POST'])
@@ -145,7 +165,6 @@ def check_signup():
         if not response["wrong_email"] and not response["wrong_password"]:
             session["user_id"] = account.ID
             return jsonify(response)
-        
 
     elif form == "second":
         username = request.form.get("username")
@@ -181,6 +200,7 @@ def check_signup():
 
 
 @app.route("/monitor")
+@login_required
 def monitor():
     # Returning user's portfolio
     return render_template("monitor.html")
@@ -191,12 +211,14 @@ def monitor():
 
 
 @app.route("/monitor/farm")
+@login_required
 def farm():
     # Returning user's portfolio
     return render_template("farm.html")
 
 
 @app.route("/organism")
+@login_required
 def organism():
     # Returning user's portfolio
     return render_template("organism.html")
@@ -210,15 +232,27 @@ def allowed_file(filename):
 
 @app.route('/upload_image', methods=['GET', 'POST'])
 def upload_image():
-    # Receive the image data
-    if 'file' not in request.files:
-        flash('Invalid file')
+    image_info = json.loads(request.form['data'])
+    print(image_info)
+
+    if image_info.get('status') == "Fail":
         return redirect(request.url)
-    file = request.files['file']
+
+    # Receive the image data
+    if 'image' not in request.files:
+        return redirect(request.url)
+    file = request.files['image']
 
     if file.filename == '':
-        flash('No selected file')
         return redirect(request.url)
+
+    # Create a directory called 'capture' if it doesn't exist
+    # if not os.path.exists("pest-advisor/captured"):
+    #     os.makedirs("pest-advisor/captured")
+
+    # FOR TESTING
+    if not os.path.exists("captured"):
+        os.makedirs("captured")
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -227,7 +261,8 @@ def upload_image():
     # Respond with a success message
     return jsonify({"message": "Image received and saved successfully"})
 
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        app.run(debug=True)
+        app.run(debug=True, host='0.0.0.0')
