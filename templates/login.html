@@ -79,6 +79,7 @@
                 type="checkbox"
                 class="form-check-input"
                 id="seePassword"
+                onclick="revealPass()"
               />
               <label class="form-check-label" for="seePassword"
                 >See Password</label
@@ -249,7 +250,7 @@
 
         // Make an AJAX request to check if the username is taken
         $.ajax({
-          url: "/", // Your Flask route for checking the username
+          url: "/check_signup", // Your Flask route for checking the username
           method: "POST",
           data: {
             username: username,
@@ -271,6 +272,15 @@
           },
         });
       });
+
+      function revealPass() {
+        var x = document.getElementById("loginPassword");
+        if (x.type === "password") {
+          x.type = "text";
+        } else {
+          x.type = "password";
+        }
+      }
     </script>
   </body>
 </html>
