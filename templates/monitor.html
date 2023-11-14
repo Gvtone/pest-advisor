@@ -1,150 +1,167 @@
-{% extends "layout.html" %}
-
-{% set active_page = "monitor" %}
-
-{% block title%} Monitor {% endblock %}
-{% block header %} MONITOR {% endblock %}
-
-{% block main %}
+{% extends "layout.html" %} {% set active_page = "monitor" %} {% block title%}
+Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
+%}
 <div class="row px-4 pt-4 mb-4 mt-0 mx-0" id="monitor-content">
+  {% for farm in farms %}
   <div class="col-12 col-md-4 col-lg-3">
     <a href="/monitor/farm" class="text-decoration-none">
       <div class="card mb-4 rounded-5 shadow">
         <div class="d-flex rounded-5 shadow flex-grow-1 position-relative">
-          <img src="./static/images/farm_img.jpg" class="card-img-top rounded-5">
+          {% if farm["Farm_Picture"] is not none %}
+          <img
+            src="data:;base64,{{ farm['Farm_Picture'] | convert2base64}}"
+            class="card-img-top rounded-5"
+          />
+          {% else %}
+          <img
+            src="./static/images/farm_img.jpg"
+            class="card-img-top rounded-5"
+          />
+          {% endif %}
           <div class="card-img-overlay">
-            <h5 class="card-title text-white position-absolute z-1 bottom-0 pb-2">Patimbao</h5> 
+            <h5
+              class="card-title text-white position-absolute z-1 bottom-0 pb-2"
+            >
+              {{ farm["Farm_Name"] }}
+            </h5>
             <div class="img-overlay-gradient rounded-5"></div>
           </div>
 
-          <div class="dropdown m-3" style="position: absolute; right: 0;">
-            <a class="dropdown-toggle text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fa-solid fa-ellipsis-vertical" style="color: #ffffff; font-size: 2rem;"></i>
+          <div class="dropdown m-3" style="position: absolute; right: 0">
+            <a
+              class="dropdown-toggle text-decoration-none"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i
+                class="fa-solid fa-ellipsis-vertical"
+                style="color: #ffffff; font-size: 2rem"
+              ></i>
             </a>
-          
+
             <ul class="dropdown-menu rounded-1">
               <li><a class="dropdown-item" href="#">Rename</a></li>
               <li><a class="dropdown-item" href="#">Change Picture</a></li>
-              <li><hr class="dropdown-divider"></li>
+              <li><hr class="dropdown-divider" /></li>
               <li><a class="dropdown-item" href="#">Delete</a></li>
             </ul>
           </div>
         </div>
 
-        <div class="card-body d-flex flex-shrink-1 p-3 justify-content-between align-items-center">
+        <div
+          class="card-body d-flex flex-shrink-1 p-3 justify-content-between align-items-center"
+        >
           <p class="card-text m-0">Device status: Okay!</p>
-          <i class="fa-solid fa-circle-check" style="color: #1fdb67; font-size: 1.25rem;"></i>
+          <i
+            class="fa-solid fa-circle-check"
+            style="color: #1fdb67; font-size: 1.25rem"
+          ></i>
         </div>
       </div>
     </a>
   </div>
-  <div class="col-12 col-md-4 col-lg-3">
-    <a href="#" class="text-decoration-none">
-      <div class="card mb-4 rounded-5 shadow">
-        <div class="d-flex rounded-5 shadow flex-grow-1 position-relative">
-          <img src="./static/images/farm_img.jpg" class="card-img-top rounded-5">
-          <div class="card-img-overlay">
-            <h5 class="card-title text-white position-absolute z-1 bottom-0 pb-2">Patimbao</h5> 
-            <div class="img-overlay-gradient rounded-5"></div>
-          </div>
+  {% endfor %}
 
-          <div class="dropdown m-3" style="position: absolute; right: 0;">
-            <a class="dropdown-toggle text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fa-solid fa-ellipsis-vertical" style="color: #ffffff; font-size: 2rem;"></i>
-            </a>
-          
-            <ul class="dropdown-menu rounded-1">
-              <li><a class="dropdown-item" href="#">Rename</a></li>
-              <li><a class="dropdown-item" href="#">Change Picture</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="#">Delete</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="card-body d-flex flex-shrink-1 p-3 justify-content-between align-items-center">
-          <p class="card-text m-0">Device status: Okay!</p>
-          <i class="fa-solid fa-circle-check" style="color: #1fdb67; font-size: 1.25rem;"></i>
-        </div>
-      </div>
-    </a>
-  </div>
   <div class="col-12 col-md-4 col-lg-3">
-    <div class="d-grid" style="min-height: 300px;">
-      <button type="button" class="btn btn-light align-items-center rounded-5 shadow" data-bs-target="#create-farm" data-bs-toggle="modal">
-        <i class="fa-solid fa-plus" style="font-size: 5rem;"></i>
+    <div class="d-grid" style="min-height: 300px">
+      <button
+        type="button"
+        class="btn btn-light align-items-center rounded-5 shadow"
+        data-bs-target="#create-farm-modal"
+        data-bs-toggle="modal"
+      >
+        <i class="fa-solid fa-plus" style="font-size: 5rem"></i>
         <h5>Create New</h5>
       </button>
     </div>
   </div>
 
-  <div class="modal fade" id="create-farm" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div
+    class="modal fade"
+    id="create-farm-modal"
+    tabindex="-1"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+  >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Create New Farm</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
         </div>
         <div class="modal-body">
           <form id="create-form">
             <div class="mb-3">
-              <label for="username" class="form-label">Username</label>
+              <label for="farm-name" class="form-label"
+                >Farm Name<span style="color: red">*</span></label
+              >
               <input
+                type="text"
                 class="form-control border-2"
-                id="username"
-                autocomplete="on"
+                id="farm-name"
+                autocomplete="off"
                 required
               />
             </div>
             <div class="mb-3">
-              <label for="signupEmail" class="form-label"
-                >Email address</label
-              >
+              <label for="farm-image" class="form-label">Farm Image</label>
               <input
-                type="email"
-                class="form-control border-2"
-                id="signupEmail"
-                autocomplete="on"
-                required
+                type="file"
+                class="form-control"
+                id="farm-image"
+                accept="image/*"
               />
             </div>
-            <div class="mb-3">
-              <label for="signupPassword" class="form-label"
-                >Password</label
-              >
-              <input
-                type="password"
-                class="form-control border-2"
-                id="signupPassword"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="repeatPassword" class="form-label"
-                >Confirm Password</label
-              >
-              <input
-                type="password"
-                class="form-control border-2"
-                id="repeatPassword"
-                required
-              />
-            </div>
-            <input type="hidden" name="form" value="second" />
+            <p class="form-label">Farm Location</p>
+            <div
+              class="mb-3"
+              id="map"
+              style="min-width: 100%; min-height: 300px"
+            ></div>
+            <input type="hidden" id="latitude" name="latitude" />
+            <input type="hidden" id="longitude" name="longitude" />
             <p
               class="text-center m-0"
               id="error-message"
               style="color: red; font-size: 0.9rem"
             ></p>
+            <div class="modal-footer px-0">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                id="create-farm"
+                name="create-farm"
+                class="btn btn-primary"
+                style="background: #007837"
+              >
+                Create
+              </button>
+            </div>
           </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" style="background: #007837;">Create</button>
         </div>
       </div>
     </div>
   </div>
-
 </div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="/static/js/addFarm.js"></script>
+<script src="/static/js/map.js"></script>
+<script
+  async
+  defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-I0gZUe7G_KVRpSliDexdDCUtr49O-xQ&map_ids=f6132d5740155e8c&callback=initMap"
+></script>
 {% endblock%}
