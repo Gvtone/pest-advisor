@@ -101,12 +101,22 @@
           </a>
 
           <ul class="dropdown-menu rounded-1 text-align-center">
-            <li><a class="dropdown-item text-black" href="#">Settings</a></li>
-            <li><a class="dropdown-item text-black" href="/logout">Log out</a></li>
+            <li>
+              <a
+                class="dropdown-item text-black"
+                data-bs-toggle="modal"
+                data-bs-target="#account-settings"
+                >Settings</a
+              >
+            </li>
+            <li>
+              <a class="dropdown-item text-black" href="/logout">Log out</a>
+            </li>
           </ul>
         </div>
       </div>
 
+      <!-- -------------------------------------------------------------------- -->
       <!-- Mobile Sidebar -->
       <div
         class="offcanvas offcanvas-start"
@@ -179,8 +189,17 @@
             </a>
 
             <ul class="dropdown-menu rounded-1 text-align-center">
-              <li><a class="dropdown-item text-black" href="#">Settings</a></li>
-              <li><a class="dropdown-item text-black" href="/logout">Log out</a></li>
+              <li>
+                <a
+                  class="dropdown-item text-black"
+                  data-bs-toggle="modal"
+                  data-bs-target="#account-settings"
+                  >Settings</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item text-black" href="/logout">Log out</a>
+              </li>
             </ul>
           </div>
         </div>
@@ -223,11 +242,204 @@
       </div>
     </div>
 
-    <script>
-      $(".sidebar ul li").on("click", function () {
-        $(".sidebar ul li.active").removeClass("active");
-        $(this).addClass("active");
-      });
-    </script>
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="account-settings"
+      tabindex="-1"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Account Settings</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body account-content d-flex flex-column">
+            <ul
+              class="nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden"
+            >
+              <li class="nav-item">
+                <a class="nav-link active" onclick="showContent('overview')"
+                  >Overview</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" onclick="showContent('account')">Account</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" onclick="showContent('security')"
+                  >Security</a
+                >
+              </li>
+              <li class="nav-item text-nowrap">
+                <a class="nav-link" onclick="showContent('delete-account')"
+                  >Delete Account</a
+                >
+              </li>
+            </ul>
+            <!-- Main Modal Content -->
+            <div
+              class="mt-3 d-flex flex-column justify-content-center align-items-center setting-content"
+              id="overview"
+              hidden
+            >
+              <img
+                src="/static/images/profile_pic.png"
+                class="rounded-circle"
+                style="max-height: 200px; max-width: 200px"
+              />
+              <p class="m-0" style="font-size: 1.5rem">Gvtone</p>
+              <p class="m-0">email@email.com</p>
+            </div>
+            <div
+              class="mt-3 d-flex flex-column justify-content-center setting-content"
+              id="account"
+            >
+              <form id="account-form">
+                <div class="mb-3">
+                  <label for="username" class="form-label">Username</label>
+                  <input
+                    class="form-control border-2"
+                    id="username"
+                    autocomplete="off"
+                    placeholder="{{ loadUsername() }}"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email Address</label>
+                  <input
+                    type="email"
+                    class="form-control border-2"
+                    id="email"
+                    autocomplete="off"
+                    placeholder="{{ loadEmail() }}"
+                  />
+                </div>
+                <input type="hidden" name="form" value="account" />
+                <p
+                  class="m-0"
+                  id="account-message"
+                  style="color: green; font-size: 0.9rem"
+                ></p>
+                <button
+                  type="submit"
+                  class="btn btn-primary mt-3"
+                  id="form-account"
+                  name="form-account"
+                  value="Sign up form"
+                  style="min-width: 25%; background: #007837; border: none"
+                >
+                  <strong>Update Account</strong>
+                </button>
+              </form>
+            </div>
+            <div
+              class="mt-3 d-flex flex-column justify-content-center setting-content"
+              id="security"
+              hidden
+            >
+              <form id="security-form">
+                <div class="mb-3">
+                  <label for="oldPassword" class="form-label"
+                    >Old Password</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control border-2"
+                    id="oldPassword"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="newPassword" class="form-label"
+                    >New Password</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control border-2"
+                    id="newPassword"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="repeatPassword" class="form-label"
+                    >Confirm Password</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control border-2"
+                    id="repeatPassword"
+                    required
+                  />
+                </div>
+                <input type="hidden" name="form" value="security" />
+                <p
+                  class="m-0"
+                  id="security-message"
+                  style="color: red; font-size: 0.9rem"
+                ></p>
+                <button
+                  type="submit"
+                  class="btn btn-primary mt-3"
+                  id="form-security"
+                  name="form-security"
+                  value="Sign up form"
+                  style="min-width: 25%; background: #007837; border: none"
+                >
+                  <strong>Update Password</strong>
+                </button>
+              </form>
+            </div>
+            <div
+              class="mt-3 d-flex flex-column justify-content-center setting-content"
+              id="delete-account"
+              hidden
+            >
+              <form id="deletion-form">
+                <div class="mb-3">
+                  <label for="confirmPassword" class="form-label"
+                    >Password</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control border-2"
+                    id="confirmPassword"
+                    required
+                  />
+                </div>
+                <input type="hidden" name="form" value="delete-account" />
+                <p
+                  class="m-0"
+                  id="delete-account-message"
+                  style="color: red; font-size: 0.9rem"
+                ></p>
+                <button
+                  type="submit"
+                  class="btn btn-primary mt-3"
+                  id="form-delete-account"
+                  name="form-delete-account"
+                  value="Sign up form"
+                  style="
+                    min-width: 25%;
+                    background: rgb(193, 15, 15);
+                    border: none;
+                  "
+                >
+                  <strong>Delete Account</strong>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/layout.js"></script>
   </body>
 </html>
