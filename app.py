@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 import json
+import base64
 
 # Global Variables
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -21,6 +22,15 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 # app.config['UPLOAD_FOLDER'] = "pest-advisor/captured"
 # FOR TESTING
 app.config['UPLOAD_FOLDER'] = "./captured"
+
+# Converting binary image to readble image
+
+
+def convert2base64(file):
+    return base64.b64encode(file).decode('ascii')
+
+
+app.jinja_env.filters["convert2base64"] = convert2base64
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -53,7 +63,7 @@ class user(db.Model):
     Password = db.Column("Password", db.String(100), nullable=False)
     Profile_Picture = db.Column("Profile_Picture", db.LargeBinary)
 
-    farms = db.relationship('farm', backref='author',
+    farms = db.relationship('farm', backref='user',
                             lazy=True, cascade='all, delete-orphan')
 
 
@@ -61,10 +71,12 @@ class farm(db.Model):
     ID = db.Column("ID", db.Integer, nullable=False,
                    primary_key=True, autoincrement=True)
     User_ID = db.Column("User_ID", db.Integer, db.ForeignKey(
-        'user.ID', ondelete='CASCADE'), nullable=False, unique=True)
+        'user.ID', ondelete='CASCADE'), nullable=False)
     Farm_Name = db.Column("Farm_Name", db.String(30),
                           nullable=False, unique=True)
     Farm_Picture = db.Column("Farm_Picture", db.LargeBinary)
+    Latitude = db.Column("Latitude", db.Numeric)
+    Longitude = db.Column("Longitude", db.Numeric)
 
     devices = db.relationship('device', backref='farm',
                               lazy=True, cascade='all, delete-orphan')
@@ -77,7 +89,7 @@ class device(db.Model):
     ID = db.Column("ID", db.Integer, nullable=False,
                    primary_key=True, autoincrement=True)
     Farm_ID = db.Column("Farm_ID", db.Integer, db.ForeignKey(
-        'farm.ID', ondelete='CASCADE'), nullable=False, unique=True)
+        'farm.ID', ondelete='CASCADE'), nullable=False)
     Device_Name = db.Column("Device_Name", db.String(30),
                             nullable=False, unique=True)
     Latitude = db.Column("Latitude", db.Numeric)
@@ -92,9 +104,9 @@ class capture(db.Model):
     ID = db.Column("ID", db.Integer, nullable=False,
                    primary_key=True, autoincrement=True)
     Device_ID = db.Column("Device_ID", db.Integer, db.ForeignKey(
-        'device.ID', ondelete='CASCADE'), nullable=False, unique=True)
+        'device.ID', ondelete='CASCADE'), nullable=False)
     Farm_ID = db.Column("Farm_ID", db.Integer, db.ForeignKey(
-        'farm.ID', ondelete='CASCADE'), nullable=False, unique=True)
+        'farm.ID', ondelete='CASCADE'), nullable=False)
     Image_Name = db.Column("Image_Name", db.String(20), nullable=False)
     Image = db.Column("Image", db.LargeBinary, nullable=False)
     Date = db.Column("Date", db.Date, nullable=False)
@@ -119,8 +131,91 @@ def login_required(f):
 @app.route("/")
 @login_required
 def index():
+    farms = farm.query.filter_by(User_ID=session["user_id"]).all()
     # Returning user's portfolio
-    return render_template("index.html")
+    return render_template("index.html", farms=farms)
+
+
+@app.context_processor
+def utility_processor():
+    def loadUsername():
+        account = user.query.filter_by(ID=session["user_id"]).first()
+        return account.Username
+
+    def loadEmail():
+        account = user.query.filter_by(ID=session["user_id"]).first()
+        return account.Email
+
+    return dict(loadUsername=loadUsername, loadEmail=loadEmail)
+
+
+@app.route("/user_setting", methods=["POST"])
+def userSetting():
+    formType = request.form.get("form")
+    account = user.query.filter_by(ID=session["user_id"]).first()
+
+    if formType == "account":
+        username = request.form.get("username")
+        email = request.form.get("email")
+
+        response = {'changed_both': False,
+                    'changed_username': False, 'changed_email': False}
+
+        if username == "" or email == "":
+            return jsonify(response)
+
+        if account.Username != username and account.Email != email:
+            account.Username = username
+            account.Email = email
+            db.session.commit()
+            response["changed_both"] = True
+            return jsonify(response)
+
+        elif account.Username != username:
+            account.Username = username
+            db.session.commit()
+            response["changed_username"] = True
+            return jsonify(response)
+
+        elif account.Email != email:
+            account.Email = email
+            db.session.commit()
+            response["changed_email"] = True
+            return jsonify(response)
+
+    elif formType == "security":
+        oldPassword = request.form.get("oldPassword")
+        newPassword = request.form.get("newPassword")
+        repeatPassword = request.form.get("repeatPassword")
+
+        response = {'wrong_password': False, 'password_different': False}
+
+        if not check_password_hash(account.Password, oldPassword):
+            response["wrong_password"] = True
+            return jsonify(response)
+
+        if newPassword != repeatPassword:
+            response["password_different"] = True
+            return jsonify(response)
+
+        account.Password = generate_password_hash(newPassword)
+        db.session.commit()
+        return jsonify(response)
+
+    elif formType == "delete-account":
+        confirmPassword = request.form.get("confirmPassword")
+
+        response = {'wrong_password': False}
+
+        if not check_password_hash(account.Password, confirmPassword):
+            response["wrong_password"] = True
+            return jsonify(response)
+
+        session.clear()
+
+        db.session.delete(account)
+        db.session.commit()
+        return jsonify(response)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -202,17 +297,58 @@ def check_signup():
 @app.route("/monitor")
 @login_required
 def monitor():
-    # Returning user's portfolio
-    return render_template("monitor.html")
+    farms = farm.query.filter_by(User_ID=session["user_id"]).all()
+
+    return render_template("monitor.html", farms=farms)
+
+
+@app.route("/add_farm", methods=['POST'])
+def add_farm():
+    farmName = request.form.get("farmName")
+    latitude = request.form.get("latitude")
+    longitude = request.form.get("longitude")
+    id = session["user_id"]
+
+    if latitude != "" and longitude != "":
+        latitude = float(latitude)
+        longitude = float(longitude)
+
+    if 'farmPicture' in request.files:
+        farmPicture = request.files['farmPicture'].read()
+    else:
+        farmPicture = ""
+
+    if farmPicture == "" and latitude == "" and longitude == "":
+        newFarm = farm(User_ID=id, Farm_Name=farmName)
+        db.session.add(newFarm)
+        db.session.commit()
+        return 'Success'
+    elif farmPicture != "" and latitude == "" and longitude == "":
+        newFarm = farm(User_ID=id, Farm_Name=farmName,
+                       Farm_Picture=farmPicture)
+        db.session.add(newFarm)
+        db.session.commit()
+        return 'Success'
+    elif farmPicture == "" and latitude != "" and longitude != "":
+        newFarm = farm(User_ID=id, Farm_Name=farmName, Latitude=latitude,
+                       Longitude=longitude)
+        db.session.add(newFarm)
+        db.session.commit()
+        return 'Success'
+    else:
+        newFarm = farm(User_ID=id, Farm_Name=farmName, Farm_Picture=farmPicture,
+                       Latitude=latitude, Longitude=longitude)
+        db.session.add(newFarm)
+        db.session.commit()
+        return 'Success'
+
 
 # TODO
 # Change to dynamic link in future
 # /monitor/[user]/[farm name]
-
-
 @app.route("/monitor/farm")
 @login_required
-def farm():
+def farm_info():
     # Returning user's portfolio
     return render_template("farm.html")
 
