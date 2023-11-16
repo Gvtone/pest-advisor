@@ -5,6 +5,7 @@ from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from functools import wraps
 import json
 import base64
@@ -73,7 +74,9 @@ class farm(db.Model):
     User_ID = db.Column("User_ID", db.Integer, db.ForeignKey(
         'user.ID', ondelete='CASCADE'), nullable=False)
     Farm_Name = db.Column("Farm_Name", db.String(30),
-                          nullable=False, unique=True)
+                          nullable=False)
+    Farm_Address = db.Column("Farm_Address", db.String(50),
+                             nullable=False)
     Farm_Picture = db.Column("Farm_Picture", db.LargeBinary)
     Latitude = db.Column("Latitude", db.Numeric)
     Longitude = db.Column("Longitude", db.Numeric)
@@ -91,7 +94,7 @@ class device(db.Model):
     Farm_ID = db.Column("Farm_ID", db.Integer, db.ForeignKey(
         'farm.ID', ondelete='CASCADE'), nullable=False)
     Device_Name = db.Column("Device_Name", db.String(30),
-                            nullable=False, unique=True)
+                            nullable=False)
     Latitude = db.Column("Latitude", db.Numeric)
     Longitude = db.Column("Longitude", db.Numeric)
     URL = db.Column("URL", db.String(255), nullable=False, unique=True)
@@ -132,8 +135,14 @@ def login_required(f):
 @login_required
 def index():
     farms = farm.query.filter_by(User_ID=session["user_id"]).all()
-    # Returning user's portfolio
-    return render_template("index.html", farms=farms)
+
+    devices = {}
+    for field in farms:
+        count = db.session.query(func.count(device.ID)).join(farm).join(
+            user).filter(user.ID == session["user_id"], farm.ID == field.ID).scalar()
+        devices[field.Farm_Name] = count
+
+    return render_template("index.html", farms=farms, devices=devices)
 
 
 @app.context_processor
@@ -298,13 +307,17 @@ def check_signup():
 @login_required
 def monitor():
     farms = farm.query.filter_by(User_ID=session["user_id"]).all()
+    someone = user.query.filter_by(ID=session["user_id"]).first()
 
-    return render_template("monitor.html", farms=farms)
+    username = someone.Username
+
+    return render_template("monitor.html", farms=farms, username=username)
 
 
 @app.route("/add_farm", methods=['POST'])
 def add_farm():
     farmName = request.form.get("farmName")
+    farmAddress = request.form.get("farmAddress")
     latitude = request.form.get("latitude")
     longitude = request.form.get("longitude")
     id = session["user_id"]
@@ -319,24 +332,25 @@ def add_farm():
         farmPicture = ""
 
     if farmPicture == "" and latitude == "" and longitude == "":
-        newFarm = farm(User_ID=id, Farm_Name=farmName)
+        newFarm = farm(User_ID=id, Farm_Name=farmName,
+                       Farm_Address=farmAddress)
         db.session.add(newFarm)
         db.session.commit()
         return 'Success'
     elif farmPicture != "" and latitude == "" and longitude == "":
-        newFarm = farm(User_ID=id, Farm_Name=farmName,
+        newFarm = farm(User_ID=id, Farm_Name=farmName, Farm_Address=farmAddress,
                        Farm_Picture=farmPicture)
         db.session.add(newFarm)
         db.session.commit()
         return 'Success'
     elif farmPicture == "" and latitude != "" and longitude != "":
-        newFarm = farm(User_ID=id, Farm_Name=farmName, Latitude=latitude,
+        newFarm = farm(User_ID=id, Farm_Name=farmName, Farm_Address=farmAddress, Latitude=latitude,
                        Longitude=longitude)
         db.session.add(newFarm)
         db.session.commit()
         return 'Success'
     else:
-        newFarm = farm(User_ID=id, Farm_Name=farmName, Farm_Picture=farmPicture,
+        newFarm = farm(User_ID=id, Farm_Name=farmName, Farm_Address=farmAddress, Farm_Picture=farmPicture,
                        Latitude=latitude, Longitude=longitude)
         db.session.add(newFarm)
         db.session.commit()
@@ -346,11 +360,31 @@ def add_farm():
 # TODO
 # Change to dynamic link in future
 # /monitor/[user]/[farm name]
-@app.route("/monitor/farm")
+@app.route("/monitor/<username>/<int:id>")
 @login_required
-def farm_info():
-    # Returning user's portfolio
-    return render_template("farm.html")
+def farm_info(username, id):
+    field = (
+        db.session.query(farm)
+        .join(user)
+        .filter(user.Username == username, farm.ID == id)
+        .first()
+    )
+
+    count = db.session.query(func.count(device.ID)).join(farm).join(
+        user).filter(user.ID == session["user_id"], farm.ID == field.ID).scalar()
+    deviceCount = count
+
+    devices = db.session.query(device).join(farm).join(
+        user).filter(user.ID == session["user_id"], farm.ID == field.ID).all()
+
+    return render_template("farm.html", field=field, deviceCount=deviceCount, devices=devices)
+
+
+@app.route("/monitor/")
+@login_required
+def farm_info_redirect():
+
+    return redirect("/monitor")
 
 
 @app.route("/organism")

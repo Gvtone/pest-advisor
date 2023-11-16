@@ -4,7 +4,10 @@ Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
 <div class="row px-4 pt-4 mb-4 mt-0 mx-0" id="monitor-content">
   {% for farm in farms %}
   <div class="col-12 col-md-4 col-lg-3">
-    <a href="/monitor/farm" class="text-decoration-none">
+    <a
+      href="/monitor/{{ username }}/{{ farm['ID'] }}"
+      class="text-decoration-none"
+    >
       <div class="card mb-4 rounded-5 shadow">
         <div class="d-flex rounded-5 shadow flex-grow-1 position-relative">
           {% if farm["Farm_Picture"] is not none %}
@@ -42,10 +45,31 @@ Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
             </a>
 
             <ul class="dropdown-menu rounded-1">
-              <li><a class="dropdown-item" href="#">Rename</a></li>
-              <li><a class="dropdown-item" href="#">Change Picture</a></li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  data-bs-toggle="modal"
+                  data-bs-target="#rename-farm-modal"
+                  >Rename</a
+                >
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  data-bs-toggle="modal"
+                  data-bs-target="#farm-image-modal"
+                  >Change Picture</a
+                >
+              </li>
               <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item" href="#">Delete</a></li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  data-bs-toggle="modal"
+                  data-bs-target="#delete-farm-modal"
+                  >Delete</a
+                >
+              </li>
             </ul>
           </div>
         </div>
@@ -78,6 +102,7 @@ Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
     </div>
   </div>
 
+  <!-- Creating Farm -->
   <div
     class="modal fade"
     id="create-farm-modal"
@@ -110,6 +135,18 @@ Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
               />
             </div>
             <div class="mb-3">
+              <label for="farm-address" class="form-label"
+                >Farm Address<span style="color: red">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control border-2"
+                id="farm-address"
+                autocomplete="off"
+                required
+              />
+            </div>
+            <div class="mb-3">
               <label for="farm-image" class="form-label">Farm Image</label>
               <input
                 type="file"
@@ -131,7 +168,7 @@ Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
               id="error-message"
               style="color: red; font-size: 0.9rem"
             ></p>
-            <div class="modal-footer px-0">
+            <div class="modal-footer px-0 pb-0">
               <button
                 type="button"
                 class="btn btn-secondary"
@@ -144,9 +181,152 @@ Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
                 id="create-farm"
                 name="create-farm"
                 class="btn btn-primary"
-                style="background: #007837"
+                style="background: #007837; border: none"
               >
                 Create
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Renaming Farm -->
+  <div
+    class="modal fade"
+    id="rename-farm-modal"
+    tabindex="-1"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Rename</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form id="rename-form">
+            <div class="mb-3">
+              <label for="rename-farm-input" class="form-label"
+                >Farm Name</label
+              >
+              <input
+                type="text"
+                class="form-control border-2"
+                id="rename-farm-input"
+                autocomplete="off"
+                required
+              />
+            </div>
+            <div class="modal-footer px-0 pb-0">
+              <button
+                type="submit"
+                id="rename-farm"
+                name="rename-farm"
+                class="btn btn-primary"
+                style="background: #007837; border: none"
+              >
+                Rename
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Changing Image -->
+  <div
+    class="modal fade"
+    id="farm-image-modal"
+    tabindex="-1"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Rename</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form id="image-form">
+            <div class="mb-3">
+              <label for="change-farm-image-input" class="form-label"
+                >Farm Image</label
+              >
+              <input
+                type="file"
+                class="form-control"
+                id="change-farm-image-input"
+                accept="image/*"
+              />
+            </div>
+            <div class="modal-footer px-0 pb-0">
+              <button
+                type="submit"
+                id="change-farm-image"
+                name="change-farm-image"
+                class="btn btn-primary"
+                style="background: #007837; border: none"
+              >
+                Change Image
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Farm -->
+  <div
+    class="modal fade"
+    id="delete-farm-modal"
+    tabindex="-1"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Delete Farm</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form id="delete-form">
+            <div class="mb-3">
+              <label for="delete-farm-input" class="form-label">Password</label>
+              <input
+                type="password"
+                class="form-control border-2"
+                id="delete-farm-input"
+                required
+              />
+            </div>
+            <div class="modal-footer px-0 pb-0">
+              <button
+                type="submit"
+                id="delete-farm"
+                name="delete-farm"
+                class="btn btn-primary"
+                style="background: rgb(193, 15, 15); border: none"
+              >
+                Delete Farm
               </button>
             </div>
           </form>

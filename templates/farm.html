@@ -1,23 +1,39 @@
 {% extends "layout.html" %} {% set active_page = "monitor" %}
 
 <!-- TODO: Change with the farm's name in the future -->
-{% block title%} Farm Name {% endblock %}
-{% block header %} MONITOR {% endblock %}
-
-{% block main %}
+{% block title%} {{ field["Farm_Name"] }} {% endblock %} {% block header %}
+MONITOR {% endblock %} {% block main %}
 <div class="position-relative">
   <!-- TODO: Make cover photo dynamic -->
-  <img src="/static/images/farm_img.jpg" class="img-fluid" style="max-height: 300px; width: 100%; object-fit: cover;"/>
+  {% if field["Farm_Picture"] is not none %}
+  <img
+    src="data:;base64,{{ field['Farm_Picture'] | convert2base64}}"
+    class="img-fluid"
+    style="max-height: 300px; width: 100%; object-fit: cover"
+  />
+  <div class="img-overlay-gradient"></div>
+  {% else %}
+  <img
+    src="/static/images/farm_img.jpg"
+    class="img-fluid"
+    style="max-height: 300px; width: 100%; object-fit: cover"
+  />
+  <div class="img-overlay-gradient"></div>
+  {% endif %}
   <div class="img-overlay-gradient"></div>
   <!-- TODO: Make title dynamic -->
-  <h2 class="text-white position-absolute bottom-0 start-0 p-3 m-0 overlay-text">PATIMBAO</h2>
+  <h2
+    class="text-white position-absolute bottom-0 start-0 p-3 m-0 overlay-text"
+  >
+    {{ field["Farm_Name"] | upper }}
+  </h2>
 </div>
 
 <div class="d-flex flex-column flex-grow-1 px-4 pt-4" id="dashboard-content">
   <!-- Temperature & Insect Population -->
   <div class="d-flex flex-wrap mb-4 card-collapse">
     <div class="card rounded-5 p-3 shadow" style="flex: 2.5">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between">
           <div class="flex-column">
             <h5 class="card-title">Device Report</h5>
@@ -41,7 +57,7 @@
     <div class="card-divider d-lg-none"></div>
 
     <div class="card rounded-5 p-3 shadow" style="flex: 1.5">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between">
           <div class="flex-column">
             <h5 class="card-title">Device Connected</h5>
@@ -50,23 +66,30 @@
             </h6>
           </div>
           <div>
-            <i
-              class="fa-solid fa-camera"
-              style="font-size: 35px"
-            ></i>
+            <i class="fa-solid fa-camera" style="font-size: 35px"></i>
           </div>
         </div>
 
-        <p class="card-text">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
+        <div class="d-flex flex-column flex-grow-1">
+          <div
+            class="d-flex flex-grow-1 align-items-center justify-content-center"
+          >
+            <p class="card-text" style="font-size: 6rem; font-weight: 700">
+              {{ deviceCount }}
+            </p>
+          </div>
+          <div class="d-flex flex-shrink justify-content-center">
+            <a href="#" class="text-decoration-none" style="font-size: 1.2rem"
+              >Manage devices here</a
+            >
+          </div>
+        </div>
       </div>
     </div>
   </div>
   <!-- Farm Overview -->
   <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
-    <div class="card-body">
+    <div class="card-body d-flex flex-column">
       <div class="d-flex justify-content-between">
         <div class="flex-column">
           <h5 class="card-title">List of Devices</h5>
@@ -79,12 +102,13 @@
         </div>
       </div>
 
+      {% if devices %}
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">Farm Name</th>
-            <th class="d-none d-md-table-cell" scope="col">Location</th>
-            <th class="d-none d-md-table-cell" scope="col">Authorization</th>
+            <th scope="col">Device Name</th>
+            <th class="d-none d-md-table-cell" scope="col">Captured Images</th>
+            <th class="d-none d-md-table-cell" scope="col">Captured Insects</th>
             <th scope="col">Status</th>
           </tr>
         </thead>
@@ -95,21 +119,55 @@
             <td class="d-none d-md-table-cell">Admin</td>
             <td><span class="badge text-bg-success">OK</span></td>
           </tr>
-          <tr>
-            <td>Palasan</td>
-            <td class="d-none d-md-table-cell">Palasan, Santa Cruz, Laguna</td>
-            <td class="d-none d-md-table-cell">Owner</td>
-            <td><span class="badge text-bg-success">OK</span></td>
-          </tr>
-          <tr>
-            <td>Gatid</td>
-            <td class="d-none d-md-table-cell">Gatid, Santa Cruz, Laguna</td>
-            <td class="d-none d-md-table-cell">Manager</td>
-            <td><span class="badge text-bg-danger">Attention</span></td>
-          </tr>
         </tbody>
       </table>
+      {% else %}
+      <div
+        class="d-flex justify-content-center align-items-center flex-grow-1"
+        style="height: 100%; width: 100%"
+      >
+        <p style="font-size: 3rem; color: rgba(33, 37, 41, 0.75)">
+          <strong>No Data</strong>
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Farm Map -->
+  <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
+    <div class="card-body d-flex flex-column">
+      <div class="d-flex justify-content-between">
+        <div class="flex-column">
+          <h5 class="card-title">Farm Map</h5>
+          <h6 class="card-subtitle mb-2 text-body-secondary">
+            Shows the placement of traps
+          </h6>
+        </div>
+        <div>
+          <i class="fa-regular fa-map" style="font-size: 35px"></i>
+        </div>
+      </div>
+
+      <!--  -->
+      <div
+        class="mb-3"
+        id="map"
+        style="min-width: 100%; min-height: 300px"
+      ></div>
     </div>
   </div>
 </div>
+
+<script>
+  var latitude = "{{ field['Latitude'] }}";
+  var longitude = "{{ field['Longitude'] }}";
+</script>
+<script src="/static/js/trapLocation.js"></script>
+
+<script
+  async
+  defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-I0gZUe7G_KVRpSliDexdDCUtr49O-xQ&map_ids=f6132d5740155e8c&callback=initMap"
+></script>
 {% endblock%}

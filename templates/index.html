@@ -31,8 +31,10 @@ main %}
           {% for farm in farms %}
           <tr>
             <td>{{ farm["Farm_Name"] }}</td>
-            <td class="d-none d-md-table-cell">San Juan, Santa Cruz, Laguna</td>
-            <td class="d-none d-md-table-cell">5</td>
+            <td class="d-none d-md-table-cell">{{ farm["Farm_Address"] }}</td>
+            <td class="d-none d-md-table-cell">
+              {{ devices[farm["Farm_Name"]] }}
+            </td>
             <td><span class="badge text-bg-success">OK</span></td>
           </tr>
           {% endfor %}
@@ -44,7 +46,7 @@ main %}
         style="height: 100%; width: 100%"
       >
         <p style="font-size: 3rem; color: rgba(33, 37, 41, 0.75)">
-          <strong>No Data</strong>
+          <strong>No Device Connected</strong>
         </p>
       </div>
       {% endif %}
@@ -54,13 +56,14 @@ main %}
   <!-- Temperature & Insect Population -->
   <div class="d-flex flex-wrap mb-4 card-collapse">
     <div class="card rounded-5 p-3 shadow" style="flex: 1.5">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between">
           <div class="flex-column">
             <h5 class="card-title">Temperature</h5>
-            <h6 class="card-subtitle mb-2 text-body-secondary">
-              Card subtitle
-            </h6>
+            <h6
+              class="card-subtitle mb-2 text-body-secondary temperature-location"
+              id="temperature-location"
+            ></h6>
           </div>
           <div>
             <i
@@ -70,10 +73,21 @@ main %}
           </div>
         </div>
 
-        <p class="card-text">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
+        <div class="d-flex flex-column flex-grow-1">
+          <div class="d-flex flex-grow-1 align-items-center">
+            <p
+              class="card-text"
+              id="temperature-reading"
+              style="font-size: 5rem; font-weight: 700"
+            ></p>
+          </div>
+          <div class="flex-shrink">
+            <p class="m-0">
+              <i class="fa-solid fa-wind"></i>
+              <span id="humidity-reading"></span>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -81,7 +95,7 @@ main %}
     <div class="card-divider d-lg-none"></div>
 
     <div class="card rounded-5 p-3 shadow" style="flex: 2.5">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between">
           <div class="flex-column">
             <h5 class="card-title">Insect Population</h5>
@@ -94,10 +108,9 @@ main %}
           </div>
         </div>
 
-        <p class="card-text">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
+        <div class="chart-container" style="height: 200px">
+          <canvas id="insect-population-chart"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -105,23 +118,32 @@ main %}
   <!-- Weather, Next Capture, & Replace Trap -->
   <div class="d-flex flex-wrap mb-4 card-collapse">
     <div class="card rounded-5 p-3 shadow" style="flex: 1">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between">
           <div class="flex-column">
             <h5 class="card-title">Weather</h5>
-            <h6 class="card-subtitle mb-2 text-body-secondary">
-              Card subtitle
-            </h6>
+            <h6
+              class="card-subtitle mb-2 text-body-secondary"
+              id="weather-location"
+            ></h6>
           </div>
           <div>
             <i class="fa-solid fa-cloud" style="font-size: 35px"></i>
           </div>
         </div>
 
-        <p class="card-text">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
+        <div class="d-flex flex-column flex-grow-1">
+          <div class="d-flex flex-grow-1 align-items-center">
+            <img
+              src=""
+              id="weather-image"
+              style="min-height: 150px; min-width: 150px"
+            />
+          </div>
+          <div class="flex-shrink">
+            <p class="m-0" id="weather-description"></p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -129,7 +151,7 @@ main %}
     <div class="card-divider d-lg-none" style="font-size: 35px"></div>
 
     <div class="card rounded-5 p-3 shadow" style="flex: 1">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between">
           <div class="flex-column">
             <h5 class="card-title">Next Capture</h5>
@@ -142,10 +164,14 @@ main %}
           </div>
         </div>
 
-        <p class="card-text">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
+        <div class="d-flex flex-column justify-content-center flex-grow-1">
+          <p
+            class="card-text m-0"
+            id="capture-date"
+            style="font-size: 1.5rem; font-weight: 500"
+          ></p>
+          <p style="font-size: 4rem; font-weight: 700">8:00 AM</p>
+        </div>
       </div>
     </div>
 
@@ -153,7 +179,7 @@ main %}
     <div class="card-divider d-lg-none"></div>
 
     <div class="card rounded-5 p-3 shadow" style="flex: 1">
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between">
           <div class="flex-column">
             <h5 class="card-title">Replace Trap</h5>
@@ -169,12 +195,21 @@ main %}
           </div>
         </div>
 
-        <p class="card-text">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
+        <div class="d-flex flex-column justify-content-center flex-grow-1">
+          <p
+            class="card-text m-0"
+            id="replace-day"
+            style="font-size: 1.5rem; font-weight: 500"
+          ></p>
+          <p id="replace-date" style="font-size: 4rem; font-weight: 700"></p>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<script src="/static/js/weather.js"></script>
+<script src="/static/js/sched.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/chartPopulation.js"></script>
 {% endblock%}
