@@ -33,7 +33,6 @@ Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
           <div class="dropdown m-3" style="position: absolute; right: 0">
             <a
               class="dropdown-toggle text-decoration-none"
-              href="#"
               role="button"
               data-bs-toggle="dropdown"
               aria-expanded="false"
@@ -318,6 +317,9 @@ Monitor {% endblock %} {% block header %} MONITOR {% endblock %} {% block main
                 required
               />
             </div>
+            <!-- NEW -->
+            <input type="hidden" id="farm-id" value="{{ farms['ID'] }}" />
+            <!-- NEW -->
             <div class="modal-footer px-0 pb-0">
               <button
                 type="submit"

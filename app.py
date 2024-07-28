@@ -1,3 +1,5 @@
+from datetime import datetime
+import math
 import os
 from flask import Flask, flash, redirect, render_template, request, session, jsonify, url_for
 from flask_session import Session
@@ -6,15 +8,20 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from functools import wraps
 import json
 import base64
+from flask_apscheduler import APScheduler
+
+from detect import predict, fileDatetime, stripExtension, requestJSON, latestFile, deleteFiles
 
 # Global Variables
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 # Configure application
 app = Flask(__name__)
+sched = APScheduler()
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -80,6 +87,7 @@ class farm(db.Model):
     Farm_Picture = db.Column("Farm_Picture", db.LargeBinary)
     Latitude = db.Column("Latitude", db.Numeric)
     Longitude = db.Column("Longitude", db.Numeric)
+    Start_Date = db.Column("Date", db.Date)
 
     devices = db.relationship('device', backref='farm',
                               lazy=True, cascade='all, delete-orphan')
@@ -115,6 +123,15 @@ class capture(db.Model):
     Date = db.Column("Date", db.Date, nullable=False)
     Time = db.Column("Time", db.Time, nullable=False)
     Prediction = db.Column("Prediction", db.LargeBinary, nullable=False)
+
+
+class report(db.Model):
+    ID = db.Column("ID", db.Integer, nullable=False,
+                   primary_key=True, autoincrement=True)
+    Device_ID = db.Column("Device_ID", db.Integer, db.ForeignKey(
+        'device.ID', ondelete='CASCADE'), nullable=False)
+    Report = db.Column("Report", db.Text)
+    Date = db.Column("Date", db.Date, nullable=False)
 
 
 def login_required(f):
@@ -314,6 +331,13 @@ def monitor():
     return render_template("monitor.html", farms=farms, username=username)
 
 
+@app.route("/monitor/")
+@login_required
+def farm_info_redirect():
+
+    return redirect("/monitor")
+
+
 @app.route("/add_farm", methods=['POST'])
 def add_farm():
     farmName = request.form.get("farmName")
@@ -377,14 +401,105 @@ def farm_info(username, id):
     devices = db.session.query(device).join(farm).join(
         user).filter(user.ID == session["user_id"], farm.ID == field.ID).all()
 
-    return render_template("farm.html", field=field, deviceCount=deviceCount, devices=devices)
+    main = db.session.query(device).join(farm).join(
+        user).filter(user.ID == session["user_id"], farm.ID == field.ID).first()
+
+    if main != None:
+        reports = (
+            db.session.query(report)
+            .join(device)
+            .filter(report.Device_ID == main.ID)
+            .order_by(report.Date.desc())
+            .first()
+        )
+    else:
+        reports = None
+
+    currentDate = datetime.now()
+    if field.Start_Date:
+        dateStarted = datetime.combine(field.Start_Date, datetime.min.time())
+        currentWeek = math.floor((currentDate - dateStarted).days / 7)
+    else:
+        currentWeek = None
+
+    return render_template("farm.html", field=field, deviceCount=deviceCount,
+                           devices=devices, currentWeek=currentWeek, reports=reports)
 
 
-@app.route("/monitor/")
-@login_required
-def farm_info_redirect():
+@app.route("/get_location/<int:id>")
+def get_location(id):
+    devices = db.session.query(device).join(farm).join(
+        user).filter(user.ID == session["user_id"], farm.ID == id).all()
 
-    return redirect("/monitor")
+    # Convert the query result to a list of dictionaries
+    result_dict_list = [row.__dict__ for row in devices]
+
+    # Remove unnecessary keys from each dictionary (like '_sa_instance_state')
+    for row_dict in result_dict_list:
+        row_dict.pop('_sa_instance_state', None)
+
+    print
+
+    # Return the result as JSON using Flask's jsonify function
+    return jsonify(result_dict_list)
+
+
+@app.route("/set_date", methods=['POST'])
+def set_date():
+    isHarvest = request.form.get("isHarvest")
+
+    if isHarvest:
+        farmID = request.form.get("farmID")
+        field = farm.query.filter_by(ID=farmID).first()
+        field.Start_Date = None
+        db.session.commit()
+
+        return 'Success'
+    else:
+        startDate = request.form.get("startDate")
+        farmID = request.form.get("farmID")
+        y, m, d = startDate.split('-')
+        date = datetime(int(y), int(m), int(d))
+
+        field = farm.query.filter_by(ID=farmID).first()
+        field.Start_Date = date
+        db.session.commit()
+
+        return 'Success'
+
+
+@app.route("/add_device", methods=['POST'])
+def add_device():
+    farmID = request.form.get("id")
+    deviceName = request.form.get("deviceName")
+    latitude = request.form.get("latitude")
+    longitude = request.form.get("longitude")
+    deviceURL = request.form.get("deviceURL")
+
+    if latitude != "" and longitude != "":
+        latitude = float(latitude)
+        longitude = float(longitude)
+
+    response = {"location_missing": False}
+    if latitude == "" and longitude == "":
+        response["location_missing"] = True
+        return jsonify(response)
+
+    newdevice = device(Farm_ID=farmID, Device_Name=deviceName,
+                       Latitude=latitude, Longitude=longitude, URL=deviceURL)
+    db.session.add(newdevice)
+    db.session.commit()
+    return 'Success'
+
+
+@app.route("/delete_device", methods=['POST'])
+def delete_device():
+    deviceID = request.form.get("deviceID")
+
+    trap = device.query.filter_by(ID=deviceID).first()
+    db.session.delete(trap)
+    db.session.commit()
+    return "Success"
 
 
 @app.route("/organism")
@@ -394,7 +509,126 @@ def organism():
     return render_template("organism.html")
 
 
+@app.route("/yolo", methods=['POST'])
+def yolo():
+    deviceID = request.form.get("deviceID")
+    trap = device.query.filter_by(ID=deviceID).first()
+    person = (
+        db.session.query(user)
+        .join(farm)
+        .join(device)
+        .filter(farm.ID == trap.Farm_ID, device.ID == trap.ID)
+        .first()
+    )
+
+    deleteFiles("./static/predictions")
+
+    requestImg = requestJSON(trap.URL + "/capture?username=" + person.Username)
+
+    filename = latestFile("./captured")
+
+    with open(os.path.join("./captured/" + filename), 'rb') as file:
+        image_data = file.read()
+
+    imageDate, imageTime = fileDatetime(stripExtension(filename))
+
+    if predict("./captured/" + filename, "./static/weight/best.pt"):
+        with open(os.path.join("./static/predictions/" + stripExtension(filename) + ".json"), 'r') as file:
+            jsonContent = json.load(file)
+
+        newPred = capture(Device_ID=trap.ID,
+                          Farm_ID=trap.Farm_ID, Image_Name=stripExtension(filename), Image=image_data,
+                          Date=imageDate, Time=imageTime, Prediction=json.dumps(jsonContent).encode('utf-8'))
+
+        db.session.add(newPred)
+        db.session.commit()
+
+    result = {'filename': stripExtension(filename)}
+
+    return jsonify(result)
+
+
+@app.route('/generate_report', methods=['POST'])
+def generate_report():
+    farmID = request.form.get("idFarm")
+    deviceID = request.form.get("idDevice")
+
+    field = (
+        db.session.query(farm)
+        .join(user)
+        .filter(user.ID == session["user_id"], farm.ID == farmID)
+        .first()
+    )
+
+    prediction = (
+        db.session.query(capture)
+        .join(device)
+        .filter(capture.Device_ID == deviceID)
+        .order_by(capture.Date.desc())
+        .first()
+    )
+
+    currentDate = datetime.now()
+    dateStarted = datetime.combine(field.Start_Date, datetime.min.time())
+    currentWeek = math.floor((currentDate - dateStarted).days / 7)
+
+    insectWarning = "These are the insects that can damage the crops in their current age:\n"
+    if currentWeek > 0 and currentWeek < 14:
+        insectWarning += "Brown Planthopper\n"
+
+    if currentWeek > 0 and currentWeek < 5:
+        insectWarning += "Green Leafhopper\nWhorl Maggot\n"
+
+    insectWarning += "Armyworm\nLeaffolder\nStemborer\n"
+
+    if currentWeek > 0 and currentWeek < 11:
+        insectWarning += "Caseworm\n"
+
+    if currentWeek > 0 and currentWeek < 8:
+        insectWarning += "Rice Black Bug\n"
+
+    if currentWeek > 10 and currentWeek < 15:
+        insectWarning += "Rice Bug\n"
+
+    insectWarning += "\n"
+
+    loadPrediction = json.loads(prediction.Prediction)
+    presentInsect = "Here are the currently trapped insects:\n"
+    for key, value in loadPrediction.items():
+        presentInsect += key + ": " + str(value) + "\n"
+
+    presentInsect += "\n"
+
+    giveWarn = False
+    insectAlert = "Alert! Farm is infested\n"
+    insecticide = "It is adviced to use this insecticide to lower their population:\n"
+    for key, value in loadPrediction.items():
+        if key == "Green Leafhopper" or key == "Zigzag Leafhopper" and value > 50:
+            giveWarn = True
+            insectAlert += "- Signs of infestation is showing for: " + key + "\n"
+            insecticide + "Starkle or Terrapest or Primaphos "
+
+    current_date = datetime.now().date()
+
+    if giveWarn:
+        finalMessage = insectWarning + presentInsect + insectAlert + insecticide
+        newReport = report(Device_ID=deviceID,
+                           Report=finalMessage, Date=current_date)
+        db.session.add(newReport)
+        db.session.commit()
+
+    else:
+        finalMessage = insectWarning + presentInsect
+        newReport = report(Device_ID=deviceID,
+                           Report=finalMessage, Date=current_date)
+        db.session.add(newReport)
+        db.session.commit()
+
+    return "Success"
+
 # For receiving images from the Orange Pi PC
+
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
