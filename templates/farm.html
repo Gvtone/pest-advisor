@@ -1,0 +1,575 @@
+{% extends "layout.html" %} {% set active_page = "monitor" %}
+
+<!-- TODO: Change with the farm's name in the future -->
+{% block title%} {{ field["Farm_Name"] }} {% endblock %} {% block header %}
+MONITOR {% endblock %} {% block main %}
+<div class="position-relative">
+  <!-- TODO: Make cover photo dynamic -->
+  {% if field["Farm_Picture"] is not none %}
+  <img
+    src="data:;base64,{{ field['Farm_Picture'] | convert2base64}}"
+    class="img-fluid"
+    style="max-height: 300px; width: 100%; object-fit: cover"
+  />
+  <div class="img-overlay-gradient"></div>
+  {% else %}
+  <img
+    src="/static/images/farm_img.jpg"
+    class="img-fluid"
+    style="max-height: 300px; width: 100%; object-fit: cover"
+  />
+  <div class="img-overlay-gradient"></div>
+  {% endif %}
+  <div class="img-overlay-gradient"></div>
+  <!-- TODO: Make title dynamic -->
+  <h2
+    class="text-white position-absolute bottom-0 start-0 p-3 m-0 overlay-text"
+  >
+    {{ field["Farm_Name"] | upper }}
+  </h2>
+</div>
+
+<div class="d-flex flex-column flex-grow-1 px-4 pt-4" id="dashboard-content">
+  <!-- Temperature & Insect Population -->
+  <div class="d-flex flex-wrap mb-4 card-collapse">
+    <div class="card rounded-5 p-3 shadow flex-fill">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Planting Date</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">
+              The date of the start of cropping
+            </h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-calendar-week" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <div class="d-flex flex-column flex-grow-1 mt-3">
+          {% if field["Start_Date"] is not none %}
+          <div
+            class="d-flex flex-column flex-grow-1 align-items-center justify-content-center"
+          >
+            <p class="card-text" style="font-size: 2.5rem; font-weight: 700">
+              {{ field["Start_Date"] }}
+            </p>
+          </div>
+          <div class="d-flex flex-shrink justify-content-center mt-3">
+            <form id="harvest-date">
+              <input
+                type="hidden"
+                id="farm-id-harvest"
+                name="farm-id-harvest"
+                value="{{ field['ID'] }}"
+              />
+              <button type="submit" class="btn btn-success">
+                <strong>Harvest</strong>
+              </button>
+            </form>
+          </div>
+          {% else%}
+          <form
+            id="set-date"
+            class="d-flex flex-column flex-grow-1 align-items-center justify-content-center"
+          >
+            <div class="d-flex w-100">
+              <input
+                type="date"
+                class="form-control border-2"
+                id="start-date"
+                autocomplete="off"
+                required
+              />
+              <input
+                type="hidden"
+                id="farm-id"
+                name="farm-id"
+                value="{{ field['ID'] }}"
+              />
+            </div>
+            <div class="d-flex flex-shrink justify-content-center mt-3">
+              <button type="submit" class="btn btn-success">
+                <strong>Set Date</strong>
+              </button>
+            </div>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-align-stretch card-divider d-none d-md-block"></div>
+    <div class="card-divider d-lg-none"></div>
+
+    <div class="card rounded-5 p-3 shadow flex-fill">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Current Week</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">
+              The current age of the crops
+            </h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-clock" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <div class="d-flex flex-column flex-grow-1 mt-3">
+          <div
+            class="d-flex flex-grow-1 align-items-center justify-content-center"
+          >
+            {% if currentWeek %}
+            <p class="card-text" style="font-size: 6rem; font-weight: 700">
+              {{ currentWeek }}
+            </p>
+            <p style="font-size: 2rem">Weeks</p>
+            {% else %}
+            <p style="font-size: 2rem">N/A</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-align-stretch card-divider d-none d-md-block"></div>
+    <div class="card-divider d-lg-none"></div>
+
+    <div class="card rounded-5 p-3 shadow flex-fill">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between">
+          <div class="flex-column">
+            <h5 class="card-title">Device Connected</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">
+              Number of Devices
+            </h6>
+          </div>
+          <div>
+            <i class="fa-solid fa-camera" style="font-size: 35px"></i>
+          </div>
+        </div>
+
+        <div class="d-flex flex-column flex-grow-1 mt-3">
+          <div
+            class="d-flex flex-grow-1 align-items-center justify-content-center"
+          >
+            <p class="card-text" style="font-size: 6rem; font-weight: 700">
+              {{ deviceCount }}
+            </p>
+          </div>
+          <div class="d-flex flex-shrink justify-content-center">
+            <a
+              class="text-decoration-none"
+              style="font-size: 1.2rem"
+              data-bs-toggle="modal"
+              data-bs-target="#device-settings"
+              >Manage devices here</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Farm Map -->
+  <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
+    <div class="card-body d-flex flex-column">
+      <div class="d-flex justify-content-between">
+        <div class="flex-column">
+          <h5 class="card-title">Farm Map</h5>
+          <h6 class="card-subtitle mb-2 text-body-secondary">
+            Shows the placement of traps
+          </h6>
+        </div>
+        <div>
+          <i class="fa-regular fa-map" style="font-size: 35px"></i>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div
+        class="my-3"
+        id="trap-map"
+        style="min-width: 100%; min-height: 300px"
+      ></div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
+    <div class="card-body d-flex flex-column">
+      <div class="d-flex justify-content-between">
+        <div class="flex-column">
+          <h5 class="card-title">Weekly Report</h5>
+          <h6 class="card-subtitle mb-2 text-body-secondary">
+            Quick Report Summary
+          </h6>
+        </div>
+        <div>
+          <i class="fa-solid fa-rectangle-list" style="font-size: 35px"></i>
+        </div>
+      </div>
+
+      {% if reports %}
+      <p class="card-text mt-3">{{ reports["Report"] }}</p>
+      {% else %}
+      <div
+        class="d-flex justify-content-center align-items-center flex-grow-1 mt-3"
+        style="height: 100%; width: 100%"
+      >
+        <p style="font-size: 3rem; color: rgba(33, 37, 41, 0.75)">
+          <strong>No Data</strong>
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Farm Overview -->
+  <!-- <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
+    <div class="card-body d-flex flex-column">
+      <div class="d-flex justify-content-between">
+        <div class="flex-column">
+          <h5 class="card-title">Recommendation History</h5>
+          <h6 class="card-subtitle mb-2 text-body-secondary">
+            Double Click Device to View Full Details
+          </h6>
+        </div>
+        <div>
+          <i class="fa-solid fa-solar-panel" style="font-size: 35px"></i>
+        </div>
+      </div>
+
+      {% if devices %}
+      <table class="table mt-3">
+        <thead>
+          <tr>
+            <th scope="col">Device Name</th>
+            <th class="d-none d-md-table-cell" scope="col">Captured Images</th>
+            <th class="d-none d-md-table-cell" scope="col">Captured Insects</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>San Juan</td>
+            <td class="d-none d-md-table-cell">San Juan, Santa Cruz, Laguna</td>
+            <td class="d-none d-md-table-cell">Admin</td>
+            <td><span class="badge text-bg-success">OK</span></td>
+          </tr>
+        </tbody>
+      </table>
+      {% else %}
+      <div
+        class="d-flex justify-content-center align-items-center flex-grow-1 mt-3"
+        style="height: 100%; width: 100%"
+      >
+        <p style="font-size: 3rem; color: rgba(33, 37, 41, 0.75)">
+          <strong>No Data</strong>
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div> -->
+
+  <!-- Insect Capture -->
+  <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
+    <div class="card-body d-flex flex-column">
+      <div class="d-flex justify-content-between">
+        <div class="flex-column">
+          <h5 class="card-title">Insect Capture</h5>
+          <h6 class="card-subtitle mb-2 text-body-secondary">
+            See the latest captures or initiate a new capture
+          </h6>
+        </div>
+        <div>
+          <i class="fa-solid fa-rectangle-list" style="font-size: 35px"></i>
+        </div>
+      </div>
+
+      <!-- Main -->
+      {% if devices %}
+      <div class="d-flex flex-grow-1 flex-sm-nowrap flex-wrap mt-3">
+        <div class="d-flex flex-column flex-grow-1 me-sm-4 me-0">
+          <!-- Device Selection -->
+          <form id="seek-image" class="d-flex flex-shrink-1 flex-row flex-wrap">
+            <p class="d-flex align-items-center mb-0 me-3">
+              <strong>Select Device:</strong>
+            </p>
+            <select class="form-select w-50" id="device-select">
+              {% if devices %} {% for device in devices %}
+              <option value="{{ device['ID'] }}">
+                {{ device["Device_Name"] }}
+              </option>
+              {% endfor %} {% endif %}
+            </select>
+            <button
+              type="submit"
+              class="btn btn-primary ms-3"
+              style="background: #007837; border: none"
+            >
+              <strong>Obtain Image</strong>
+            </button>
+          </form>
+
+          <!-- Image -->
+          <div class="d-flex flex-grow-1 mt-4">
+            <div class="card flex-grow-1">
+              <div class="card-body d-flex flex-column">
+                <img
+                  src="/static/images/image_placeholder.png"
+                  class="img-fluid"
+                  id="image-predictions"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div
+          class="d-flex flex-sm-shrink-1 flex-grow-1 mt-sm-0 mt-4"
+          style="min-width: 25%"
+        >
+          <div class="card flex-grow-1">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between">
+                <div class="flex-column">
+                  <h5 class="card-title mb-2 text-body-secondary">
+                    Detected Insects
+                  </h5>
+                </div>
+              </div>
+
+              <div class="mt-3" id="detection-result"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div
+        class="d-flex justify-content-center align-items-center flex-grow-1"
+        style="height: 100%; width: 100%"
+      >
+        <p style="font-size: 3rem; color: rgba(33, 37, 41, 0.75)">
+          <strong>No Devices</strong>
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Capture Album -->
+  <!-- <div class="card flex-grow-1 mb-4 p-3 rounded-5 shadow">
+    <div class="card-body d-flex flex-column">
+      <div class="d-flex justify-content-between">
+        <div class="flex-column">
+          <h5 class="card-title">Farm Captures</h5>
+          <h6 class="card-subtitle mb-2 text-body-secondary">
+            You can look up past captures
+          </h6>
+        </div>
+        <div>
+          <i class="fa-solid fa-rectangle-list" style="font-size: 35px"></i>
+        </div>
+      </div>
+
+      // Main
+      <div class="d-flex flex-grow-1 flex-sm-nowrap flex-wrap mt-3">
+        <div class="d-flex flex-column flex-grow-1">
+          Device Selection
+          <form
+            id="capture-album"
+            class="d-flex flex-shrink-1 flex-row flex-wrap"
+          >
+            <p class="d-flex align-items-center mb-0 me-3">
+              <strong>Select Device:</strong>
+            </p>
+            <select class="form-select w-50">
+              <option selected>Select Device</option>
+              <option value="1">One</option>
+              <option value="2">Two</option>
+              <option value="3">Three</option>
+            </select>
+            <a
+              class="btn btn-primary ms-3"
+              style="background: #007837; border: none"
+              >Obtain Image</a
+            >
+          </form>
+
+          // Image
+          <div class="d-flex flex-grow-1 mt-4">
+            <div class="card flex-grow-1">
+              <div class="card-body d-flex flex-column">
+                <img
+                  src="/static/images/temp.jpg"
+                  class="img-fluid"
+                  style="height: 200px; width: 200px"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> -->
+</div>
+
+<div
+  class="modal fade"
+  id="device-settings"
+  tabindex="-1"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Account Settings</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body account-content d-flex flex-column">
+        <ul class="nav nav-tabs flex-nowrap overflow-x-auto overflow-y-hidden">
+          <li class="nav-item">
+            <a
+              class="nav-link active"
+              onclick="showDeviceContent('device-overview')"
+              >Overview</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="showDeviceContent('add-device')"
+              >Add Device</a
+            >
+          </li>
+        </ul>
+        <!-- Main Modal Content -->
+        <div
+          class="mt-3 d-flex flex-column justify-content-center align-items-center device-content"
+          id="device-overview"
+          hidden
+        >
+          {% if devices %}
+          <table class="table mt-3">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 60%">Device Name</th>
+                <th scope="col">Status</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for device in devices %}
+              <tr>
+                <td>{{ device["Device_Name"] }}</td>
+                <td><span class="badge text-bg-success">OK</span></td>
+                <td class="text-end">
+                  <button
+                    type="button"
+                    class="btn btn-danger"
+                    style="
+                      --bs-btn-padding-y: 0.25rem;
+                      --bs-btn-padding-x: 0.5rem;
+                    "
+                    value="{{ device['ID'] }}"
+                    onclick="deleteDevice(this.value)"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div
+            class="d-flex justify-content-center align-items-center flex-grow-1"
+            style="height: 100%; width: 100%"
+          >
+            <p style="font-size: 3rem; color: rgba(33, 37, 41, 0.75)">
+              <strong>No Devices Configured</strong>
+            </p>
+          </div>
+          {% endif %}
+        </div>
+        <div
+          class="mt-3 d-flex flex-column justify-content-center device-content"
+          id="add-device"
+        >
+          <form id="device-create">
+            <div class="mb-3">
+              <label for="device-name" class="form-label"
+                >Device Name<span style="color: red">*</span></label
+              >
+              <input
+                class="form-control border-2"
+                id="device-name"
+                autocomplete="off"
+                placeholder="Area 1"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="device-url" class="form-label"
+                >Device URL<span style="color: red">*</span></label
+              >
+              <input
+                class="form-control border-2"
+                id="device-url"
+                autocomplete="off"
+                placeholder="https://random-name.ngrok-free.app"
+                required
+              />
+            </div>
+            <div
+              class="mb-3"
+              id="map"
+              style="min-width: 100%; min-height: 300px"
+            ></div>
+            <input type="hidden" id="latitude" name="latitude" />
+            <input type="hidden" id="longitude" name="longitude" />
+            <p
+              class="m-0"
+              id="device-message"
+              style="color: red; font-size: 0.9rem"
+            ></p>
+            <button
+              type="submit"
+              class="btn btn-primary mt-3"
+              id="form-device"
+              name="form-device"
+              value="Device form"
+              style="min-width: 25%; background: #007837; border: none"
+            >
+              <strong>Add device</strong>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var latitude = "{{ field['Latitude'] }}";
+  var longitude = "{{ field['Longitude'] }}";
+  var farmID = "{{ field['ID'] }}";
+  var deviceID = "{{ devices['ID'] }}";
+</script>
+<script src="/static/js/trapLocation.js"></script>
+<script src="/static/js/duration.js"></script>
+<script src="/static/js/device.js"></script>
+<script src="/static/js/farmForms.js"></script>
+
+<script
+  async
+  defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-I0gZUe7G_KVRpSliDexdDCUtr49O-xQ&map_ids=f6132d5740155e8c&callback=initMap"
+></script>
+{% endblock%}
